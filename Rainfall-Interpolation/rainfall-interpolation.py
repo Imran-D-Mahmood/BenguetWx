@@ -5,17 +5,18 @@ from scipy.interpolate import Rbf  # Radial basis function: insert site informat
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib as mpl
+import matplotlib.patheffects as PathEffects
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
+import cartopy
 import cartopy.crs as ccrs
 import cartopy.io.shapereader as shpreader
 from cartopy.mpl.ticker import LongitudeFormatter,LatitudeFormatter
 import cartopy.io.shapereader as shpreader
 from cartopy.io.shapereader import Reader
 from cartopy.feature import ShapelyFeature
-import maskout  # Show only a certain area
-import cartopy
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from shapely.geometry.polygon import LinearRing
+import maskout  # Show only a certain area
 
 
 plt.rcParams["figure.facecolor"] = 'whitesmoke'
@@ -36,7 +37,8 @@ rain = f['RAIN_ACC_MM']
 
 plt.scatter(lon, lat, s=8, color='lightgray', edgecolor='dimgray', zorder=4, transform=ccrs.PlateCarree())
 for i, data in enumerate(rain):
-	ax.annotate(' ' + str(data), (lon[i], lat[i]), fontsize=8, color='black', fontweight='bold')
+    txt = ax.annotate(' ' + str(data), (lon[i], lat[i]), fontsize=8, color='black', fontweight='bold')
+    txt.set_path_effects([PathEffects.withStroke(linewidth=0.8, foreground='w')])
 
 plt.text(120.38, 16.93, '*EXPERIMENTAL; NOT AN OFFICIAL PRODUCT*',  fontsize=9, color='red', transform=ccrs.PlateCarree());
 
@@ -51,18 +53,13 @@ rain_data_new = func(olon,olat) # Interpolation
 rain_data_new[rain_data_new <0 ] = 0
 
 # Custom precipitation cmap
-clevs = [4,5,10,15,20,30,40,50,70,80,90,100,150,200,250,300,400,500]
+clevs = [4,5,10,15,20,30,40,50,60,80,100,120,150,200,250,300,400,500]
 cdict = ['#98ffff','#00ceff','#009aff','#006af7','#2e9c00','#2bff00','#fefe08','#ffcb00','#ff9c00','#fe0005','#c90200','#9d0000','#9a009d','#cf00d7','#ff00f7','#fdcafe', 'pink', 'lightpink']
 my_cmap = colors.ListedColormap(cdict)
 norm = mpl.colors.BoundaryNorm(clevs,my_cmap.N) # Generate color mapping index based on discrete interval
 
 # Draw contours, color contours
 cf = ax.contourf(olon, olat, rain_data_new, clevs, transform=ccrs.PlateCarree(), cmap=my_cmap, norm=norm, extend='both')
-
-#ct = ax.contour(olon,olat,rain_data_new,clevs) # draw contour
-#clabel = ax.clabel(cf, fmt='%i')
-#position = fig.add_axes([0.82,0.2,0.05,0.2]) # Position [left, bottom, width. high】
-#plt.colorbar(cf, cax=position)
 clb = plt.colorbar(cf, ticks=clevs, fraction=0.04)
 clb.ax.set_xlabel('mm')
 
